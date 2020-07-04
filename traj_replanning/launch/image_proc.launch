@@ -1,0 +1,14 @@
+<launch>
+
+  <arg name="mav_name" default="/"/>
+
+  <arg name="namespace_name" default="stereo"/>
+
+  <group ns="$(arg mav_name)/$(arg namespace_name)">
+
+    <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
+      <rosparam command="load" file="$(find disparity)/config/image_proc.yaml"/>
+    </node>
+
+  </group>
+</launch>

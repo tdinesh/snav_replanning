@@ -1,0 +1,5 @@
+bool fake_wall
+std_msgs/String frame_id
+geometry_msgs/Point[] window_corners
+---
+bool success

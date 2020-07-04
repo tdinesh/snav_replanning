@@ -1,0 +1,7 @@
+# Goal definition
+nav_msgs/Path path
+---
+# Result definition
+bool result
+string error_msg
+---

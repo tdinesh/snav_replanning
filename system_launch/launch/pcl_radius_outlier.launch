@@ -1,0 +1,26 @@
+<launch>
+
+  <arg name="radius_search" default="0.1" />
+  <arg name="min_neighbors" default="38" />
+  <arg name="points_topic" default="stereo/vins_node/points" />
+  <arg name="namespace_name" default="stereo"/>
+  <arg name="nodelet_manager_name" default="$(arg namespace_name)/stereo_nodelet_manager"/>
+
+  <!--<node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" /> -->
+
+  <node pkg="nodelet" type="nodelet" name="passthrough" args="load pcl/PassThrough $(arg nodelet_manager_name)" output="screen">
+    <remap from="~input" to="$(arg points_topic)" />
+    <rosparam>
+      filter_field_name: z
+      filter_limit_min: 0.1
+      filter_limit_max: 2.5
+      filter_limit_negative: False
+    </rosparam>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="radius_outlier_removal" args="load pcl/RadiusOutlierRemoval $(arg nodelet_manager_name)" output="screen">
+    <remap from="~input" to="passthrough/output" />
+    <param name="radius_search" value="$(arg radius_search)" />
+    <param name="min_neighbors" value="$(arg min_neighbors)" />
+  </node>
+</launch>

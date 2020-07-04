@@ -1,0 +1,4 @@
+bool front_rail_detector_enable
+bool front_window_detector_enable
+---
+bool success

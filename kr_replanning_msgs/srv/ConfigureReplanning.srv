@@ -1,0 +1,6 @@
+bool disable_jps
+bool disable_obstacle_avoid
+bool inflate_ring_buffer
+bool reset_ring_buffer
+---
+bool success
