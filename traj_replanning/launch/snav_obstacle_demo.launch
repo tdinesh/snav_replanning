@@ -20,7 +20,7 @@
     <node name="trajectory_replanning" pkg="traj_replanning" type="trajectory_replanning" output="screen">
       <rosparam command="load" file="$(find traj_replanning)/config/$(arg yaml_file).yaml" />
 
-      <param name="map_frame" value="/world"/>
+      <param name="map_frame" value="world"/>
       <param name="odom_frame" value="$(arg mav_name)/base_link"/>
 
       <remap from="camera/depth/image_raw" to="stereo/dfs/depth/image_raw"/>

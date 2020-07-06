@@ -80,7 +80,7 @@ Plan3DToPath::Plan3DToPath(): tf_listener_(tf_buffer_)
   //~ For the yaml case, there are 3 frames, world (gazebo), map (octomap), and yaml (written map file, has to be shifted if the octomap has any negative values)
   //~ There is also a base_link for the robot local frame, but it is not needed by the planning (we use the ground_truth/odom topic in the world frame)
   //~ For the VoxelMap taken in by subscription case, there is the world (gazebo) and the map (local frame to the robot created by e.g. SLAM)
-  pnh_.param<std::string>("world_frame", world_frame_, "/world");
+  pnh_.param<std::string>("world_frame", world_frame_, "world");
   pnh_.param<std::string>("base_frame", base_frame_, "base_link");
   pnh_.param<std::string>("planning_frame", planning_frame_, "voxel_map");
 
