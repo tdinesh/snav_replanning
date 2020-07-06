@@ -20,17 +20,17 @@ private:
   ros::NodeHandle nh_, pnh_;
   ros::Subscriber ring_buffer_sub_;
   ros::Publisher voxel_pub_;
-  tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformBroadcaster tf_broadcaster_;
-  tf2_ros::TransformListener tf_listener_;
 
   int voxel_map_size_;
   double voxel_map_resolution_;
   bool inflate_;
+  bool floor_ceil_;
+  double ceiling_height_, floor_height_;
   std::string world_frame_,planning_frame_, base_frame_;
 };
 
-RingBufferToVoxelMap::RingBufferToVoxelMap(): tf_listener_(tf_buffer_)
+RingBufferToVoxelMap::RingBufferToVoxelMap()
 {
   pnh_ = ros::NodeHandle("~");
 
@@ -40,6 +40,10 @@ RingBufferToVoxelMap::RingBufferToVoxelMap(): tf_listener_(tf_buffer_)
   pnh_.param<std::string>("world_frame", world_frame_, "world");
   pnh_.param<std::string>("planning_frame", planning_frame_, "voxel_map");
   pnh_.param<std::string>("base_frame", base_frame_, "voxel_map");
+
+  pnh_.param("floor_ceiling", floor_ceil_, false);
+  pnh_.param("ceiling_height", ceiling_height_, 3.0);
+  pnh_.param("floor_height", floor_height_, 0.1);
 
   voxel_pub_ = nh_.advertise<kr_replanning_msgs::VoxelMap>("rb_to_voxel_map", 1);
   ring_buffer_sub_ = nh_.subscribe<visualization_msgs::Marker>("ring_buffer/occupied", 1, boost::bind(&RingBufferToVoxelMap::ringBufferCallback, this, _1));
@@ -60,27 +64,6 @@ int RingBufferToVoxelMap::calculate_id(geometry_msgs::Point dim, int x_ind, int 
 void RingBufferToVoxelMap::ringBufferCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
   visualization_msgs::Marker marker = *msg; //marker points are in world_frame
-
-  /*
-  //Transform from world (source frame) to base link frame (target frame)
-  geometry_msgs::TransformStamped w_T_b;
-  try
-  {
-    // lookup transform target (frame to which data should be transformed) to source(frame where the data originated )
-    //b_T_w = tf_buffer_.lookupTransform(base_frame_, world_frame_, marker.header.stamp);
-    w_T_b = tf_buffer_.lookupTransform(world_frame_, base_frame_, marker.header.stamp);
-  }
-  catch (tf2::TransformException ex)
-  {
-    ROS_ERROR("%s",ex.what());
-    return;
-  }
-
-  //voxel map origin
-  voxel_map.origin.x = w_T_b.transform.translation.x - voxel_map_size_/2;
-  voxel_map.origin.y = w_T_b.transform.translation.y - voxel_map_size_/2;
-  voxel_map.origin.z = w_T_b.transform.translation.z - voxel_map_size_/2;
-  */
 
   kr_replanning_msgs::VoxelMap voxel_map;
   voxel_map.header.frame_id = planning_frame_;
@@ -109,6 +92,7 @@ void RingBufferToVoxelMap::ringBufferCallback(const visualization_msgs::Marker::
   geometry_msgs::Point pt;
   for(std::vector<geometry_msgs::Point>::iterator it = marker.points.begin(); it != marker.points.end(); ++it)
   {
+    //ring buffer points are in marker origin frame
     pt = *it;
 
     /*
@@ -152,6 +136,31 @@ void RingBufferToVoxelMap::ringBufferCallback(const visualization_msgs::Marker::
     }
   }
 
+  if(floor_ceil_)
+  {
+    //Points in planner frame
+    double p_pt_floor = floor_height_ - marker.pose.position.z;
+    double p_pt_ceiling = ceiling_height_ - marker.pose.position.z;
+
+    int z_ind_floor = std::round((p_pt_floor)/voxel_map.resolution - 0.5);
+    int z_ind_ceiling = std::round((p_pt_ceiling)/voxel_map.resolution - 0.5);
+
+    for(int x = 0; x < dim.x; x ++)
+    {
+      for(int y = 0; y < dim.y; y ++)
+      {
+        int id = -1;
+
+        id = calculate_id(dim, x, y, z_ind_floor); //calculate id from map indices
+        if (id>=0)
+          voxel_map.data[id]=100; //id=-1 if out of range of map
+
+        id = calculate_id(dim, x, y, z_ind_ceiling); //calculate id from map indices
+        if (id>=0)
+          voxel_map.data[id]=100; //id=-1 if out of range of map
+      }
+    }
+  }
 
   //Planner frame is lower corner from base_link aligned with world
   geometry_msgs::TransformStamped transform_stamped;

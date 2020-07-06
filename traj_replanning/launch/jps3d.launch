@@ -19,6 +19,10 @@
       <param name="world_frame" value="$(arg world_frame)"/>
       <param name="base_frame" value="$(arg base_frame)"/>
 
+      <param name="floor_ceiling" value="true"/>
+      <param name="floor_height" value="0.0"/>
+      <param name="ceiling_height" value="2.5"/>
+
       <remap from="ring_buffer/occupied" to="ring_buffer/occupied"/>
     </node>
 
@@ -30,10 +34,6 @@
       <param name="planning_frame" value="$(arg planning_frame)"/>
       <param name="world_frame" value="$(arg world_frame)"/>
       <param name="base_frame" value="$(arg base_frame)"/>
-
-      <param name="floor_ceiling" value="false"/>
-      <param name="floor_height" value="0.0"/>
-      <param name="ceiling_height" value="0.8"/>
 
       <remap from="rb_to_voxel_map" to="rb_to_voxel_map"/>
       <remap from="odom" to="ground_truth/odom"/>

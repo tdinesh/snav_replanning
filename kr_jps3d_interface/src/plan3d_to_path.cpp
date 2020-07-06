@@ -39,8 +39,6 @@ private:
   bool computePlan(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& res);
   ///void createWindowMap(const geometry_msgs::TransformStamped& bl_T_p, const Vec3i& dim, const decimal_t& resolution, std::vector<signed char>& map);
   //bool setWindowMap(kr_replanning_msgs::SetWindow::Request& req, kr_replanning_msgs::SetWindow::Response& res);
-  void addFloorCeil(const geometry_msgs::TransformStamped& p_T_b, const geometry_msgs::TransformStamped& b_T_w, const Vec3i& dim, const decimal_t& resolution, std::vector<signed char>& map);
-
 
   ros::NodeHandle nh_, pnh_;
 
@@ -58,8 +56,6 @@ private:
   bool map_initialized_;
   bool yaml_map_;
   bool fake_wall_;
-  bool floor_ceil_;
-  double celing_height_, floor_height_;
   std::string yaml_file_;
   std::string world_frame_, planning_frame_, base_frame_;
 
@@ -87,10 +83,6 @@ Plan3DToPath::Plan3DToPath(): tf_listener_(tf_buffer_)
   pnh_.param<std::string>("world_frame", world_frame_, "/world");
   pnh_.param<std::string>("base_frame", base_frame_, "base_link");
   pnh_.param<std::string>("planning_frame", planning_frame_, "voxel_map");
-
-  pnh_.param("floor_ceiling", floor_ceil_, false);
-  pnh_.param("celing_height", celing_height_, 3.0);
-  pnh_.param("floor_height", floor_height_, 0.1);
 
   map_initialized_ = false;
 
@@ -196,28 +188,6 @@ void Plan3DToPath::mapCallback(const kr_replanning_msgs::VoxelMap::ConstPtr& msg
     //createWindowMap(bl_T_p, dim, res, map);
   }
 
-  if(floor_ceil_)
-  {
-    //Transform from base_link (source frame) to planner frame (target frame)
-    geometry_msgs::TransformStamped p_T_b;
-
-    //Transform from world (source frame) to base link frame (target frame)
-    geometry_msgs::TransformStamped b_T_w;
-    try
-    {
-      // lookup transform target (frame to which data should be transformed) to source(frame where the data originated )
-      p_T_b = tf_buffer_.lookupTransform(planning_frame_, base_frame_, ros::Time(0));
-      b_T_w = tf_buffer_.lookupTransform(base_frame_, world_frame_, ros::Time(0));
-    }
-    catch (tf2::TransformException ex)
-    {
-      ROS_ERROR("%s",ex.what());
-      return;
-    }
-
-    addFloorCeil(p_T_b, b_T_w, dim, res, map);
-  }
-
   map_util_->setMap(ori, dim, map, res);
 
   if (!map_initialized_)
@@ -226,59 +196,6 @@ void Plan3DToPath::mapCallback(const kr_replanning_msgs::VoxelMap::ConstPtr& msg
     ROS_INFO("Map initialized! frame %s", planning_frame_.c_str());
   }
   publishMap();
-}
-
-
-void Plan3DToPath::addFloorCeil(const geometry_msgs::TransformStamped& p_T_b, const geometry_msgs::TransformStamped& b_T_w, const Vec3i& dim, const decimal_t& resolution, std::vector<signed char>& map)
-{
-  geometry_msgs::Point w_pt_floor, w_pt_ceiling; //Points in world frame
-  w_pt_floor.x = 0.0;
-  w_pt_floor.y = 0.0;
-  w_pt_floor.z = floor_height_;
-
-  w_pt_ceiling.x = 0.0;
-  w_pt_ceiling.y = 0.0;
-  w_pt_ceiling.z = celing_height_;
-
-  geometry_msgs::Point b_pt_floor, b_pt_ceiling; //Points in base_link frame
-  tf2::doTransform(w_pt_floor, b_pt_floor, b_T_w);
-  tf2::doTransform(w_pt_ceiling, b_pt_ceiling, b_T_w);
-
-  ROS_WARN_STREAM("bl pts " << b_pt_ceiling  << " " << b_pt_floor);
-
-  //Get floor, celining points directly below and above robot
-  b_pt_floor.x = 0.0; b_pt_floor.y = 0.0;
-  b_pt_ceiling.x = 0.0; b_pt_ceiling.y = 0.0;
-
-  geometry_msgs::Point p_pt_floor, p_pt_ceiling; //Points in planner frame
-  tf2::doTransform(b_pt_floor, p_pt_floor, p_T_b);
-  tf2::doTransform(b_pt_ceiling, p_pt_ceiling, p_T_b);
-
-  ROS_WARN_STREAM("planner pts " << p_pt_ceiling  << " " << p_pt_floor);
-
-  // convert position to map indices
-  Eigen::Vector3i floor_ind, ceiling_ind;
-  floor_ind = map_util_->floatToInt(Vec3f(p_pt_floor.x, p_pt_floor.y, p_pt_floor.z));
-  ceiling_ind = map_util_->floatToInt(Vec3f(b_pt_ceiling.x, b_pt_ceiling.y, b_pt_ceiling.z));
-
-  ROS_WARN_STREAM(" " << floor_ind  << " " << ceiling_ind);
-
-  for(int x = 0; x < dim(0); x ++)
-  {
-    for(int y = 0; y < dim(1); y ++)
-    {
-      int id = -1;
-
-      id = calculate_id(dim,x, y,floor_ind(2)); //calculate id from map indices
-      if (id>=0)
-        map[id]=100; //id=-1 if id out of range of map (80x80x80)
-
-      id = calculate_id(dim,x, y,ceiling_ind(2)); //calculate id from map indices
-      if (id>=0)
-        map[id]=100; //id=-1 if id out of range of map (80x80x80)
-
-    }
-  }
 }
 
 int Plan3DToPath::calculate_id(const Vec3i dim, int x_ind, int y_ind, int z_ind)
