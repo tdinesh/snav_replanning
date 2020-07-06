@@ -683,6 +683,8 @@ void KrTraj::pointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   edrb_->getMarkerOccupied(m_occ);
   edrb_->getMarkerFree(m_free);
 
+  m_occ.header.stamp = msg->header.stamp;
+  m_free.header.stamp = msg->header.stamp;
   occ_marker_pub_.publish(m_occ);
   free_marker_pub_.publish(m_free);
 }

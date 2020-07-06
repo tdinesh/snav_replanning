@@ -13,10 +13,10 @@
 #include <kr_replanning_msgs/VoxelMap.h>
 #include <kr_replanning_msgs/SetWindow.h>
 #include <std_srvs/SetBool.h>
-#include <tf2_ros/buffer.h>
 #include <tf2/transform_datatypes.h>
-#include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include <visualization_msgs/Marker.h>
 
 using namespace JPS;
@@ -86,6 +86,7 @@ Plan3DToPath::Plan3DToPath(): tf_listener_(tf_buffer_)
   //~ For the VoxelMap taken in by subscription case, there is the world (gazebo) and the map (local frame to the robot created by e.g. SLAM)
   pnh_.param<std::string>("world_frame", world_frame_, "/world");
   pnh_.param<std::string>("base_frame", base_frame_, "base_link");
+  pnh_.param<std::string>("planning_frame", planning_frame_, "voxel_map");
 
   pnh_.param("floor_ceiling", floor_ceil_, false);
   pnh_.param("celing_height", celing_height_, 3.0);
@@ -452,6 +453,7 @@ void Plan3DToPath::waypointsCallback(const nav_msgs::Path::ConstPtr& msg)
   ROS_INFO("%d waypoints received", wp_size);
   if(wp_size > 2)
     ROS_WARN("First 2 waypoints treated as start, goal. have not yet implemented handling additional points");
+
   if(wp_size < 1)
   {
     ROS_ERROR("Must publish at least one waypoint");
@@ -478,15 +480,14 @@ void Plan3DToPath::waypointsCallback(const nav_msgs::Path::ConstPtr& msg)
 
   boost::mutex::scoped_lock lock(map_mutex_);
   {
+    if (!map_initialized_)
+      ROS_ERROR("No map initialized");
 
-  if (!map_initialized_)
-    ROS_ERROR("No map initialized");
+    //#TODO does the planner needs to be reset everytime?
+    setUpJPS();
+    setUpDMP();
 
-  //#TODO does the planner needs to be reset everytime?
-  setUpJPS();
-  setUpDMP();
-
-  bool ret = do_planning(ps_start, ps_goal, paths);
+    bool ret = do_planning(ps_start, ps_goal, paths);
   }
 }
 
@@ -506,6 +507,7 @@ void Plan3DToPath::publishMap()
   marker.color.r = 0.0;
   marker.color.g = 1.0;
   marker.color.b = 0.0;
+  marker.pose.orientation.w = 1.0;
 
   marker.points.reserve(dim(0)*dim(1)*dim(2));
 
@@ -575,8 +577,10 @@ bool Plan3DToPath::do_planning(geometry_msgs::PoseStamped& ps_start, geometry_ms
     return;
   }*/
   ROS_INFO("Running planner");
+
   geometry_msgs::TransformStamped w_T_p, p_T_g;
-  ros::Time current_time = ros::Time::now();
+  //ros::Time current_time = ros::Time::now();
+  ros::Time current_time = ros::Time(0);
   try
   {
     w_T_p = tf_buffer_.lookupTransform(world_frame_, planning_frame_, current_time);
@@ -589,11 +593,11 @@ bool Plan3DToPath::do_planning(geometry_msgs::PoseStamped& ps_start, geometry_ms
   }
 
   geometry_msgs::PoseStamped ps_start_planner, ps_goal_planner; //Transform poses to planner frame
-  tf2::doTransform(ps_start_planner, ps_start, p_T_g);
-  tf2::doTransform(ps_goal_planner, ps_goal, p_T_g);
+  tf2::doTransform(ps_start, ps_start_planner, p_T_g);
+  tf2::doTransform(ps_goal, ps_goal_planner, p_T_g);
 
-  const Vec3f start(ps_start_planner.pose.position.x,ps_start_planner.pose.position.y,ps_start_planner.pose.position.z);
-  const Vec3f goal(ps_goal_planner.pose.position.x,ps_goal_planner.pose.position.y,ps_goal_planner.pose.position.z);
+  const Vec3f start(ps_start_planner.pose.position.x, ps_start_planner.pose.position.y, ps_start_planner.pose.position.z);
+  const Vec3f goal(ps_goal_planner.pose.position.x, ps_goal_planner.pose.position.y, ps_goal_planner.pose.position.z);
 
   // Run JPS Planner //TODO handle bool returns from "plan" methods properly
   planner_ptr_->plan(start, goal, 1, true); // Plan from start to goal using JPS
