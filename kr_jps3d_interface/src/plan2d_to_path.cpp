@@ -30,7 +30,7 @@ private:
   void waypointsCallback(const nav_msgs::Path::ConstPtr& msg);
   void publishMap();
   bool do_planning(geometry_msgs::PoseStamped& ps_start, geometry_msgs::PoseStamped& ps_goal, std::vector<nav_msgs::Path>& paths);
-  void create_path(vec_Vec2f planner_path, nav_msgs::Path& path, const geometry_msgs::TransformStamped& transform, const ros::Time current_time);
+  void create_path2d(vec_Vec2f planner_path, nav_msgs::Path& path, const geometry_msgs::TransformStamped& transform, const ros::Time current_time, double path_z);
   bool computePlan(nav_msgs::GetPlan::Request& req, nav_msgs::GetPlan::Response& res);
 
   ros::NodeHandle nh_, pnh_;
@@ -252,7 +252,7 @@ void Plan2DToPath::waypointsCallback(const nav_msgs::Path::ConstPtr& msg)
   }
 }
 
-void Plan2DToPath::create_path(vec_Vec2f planner_path, nav_msgs::Path& path, const geometry_msgs::TransformStamped& w_T_p, const ros::Time current_time)
+void Plan2DToPath::create_path2d(vec_Vec2f planner_path, nav_msgs::Path& path, const geometry_msgs::TransformStamped& w_T_p, const ros::Time current_time, double path_z)
 {
   path.header.frame_id = world_frame_;
   path.header.stamp = current_time;
@@ -269,7 +269,7 @@ void Plan2DToPath::create_path(vec_Vec2f planner_path, nav_msgs::Path& path, con
 
     path_ps_planner.pose.position.x = it.transpose()[0];
     path_ps_planner.pose.position.y = it.transpose()[1];
-    path_ps_planner.pose.position.z = 0.0;
+    path_ps_planner.pose.position.z = path_z;
 
     tf2::doTransform(path_ps_planner, path_ps_world, w_T_p); //Transform to world frame
 
@@ -329,14 +329,14 @@ bool Plan2DToPath::do_planning(geometry_msgs::PoseStamped& ps_start, geometry_ms
   planner_ptr_->plan(start, goal, 1, true); // Plan from start to goal using JPS
   auto path_jps = planner_ptr_->getRawPath();
   nav_msgs::Path nav_path_jps;
-  create_path(path_jps, nav_path_jps, w_T_p, current_time);
+  create_path2d(path_jps, nav_path_jps, w_T_p, current_time, ps_goal.pose.position.z);
   paths.push_back(nav_path_jps);
 
   // Run DMP planner
   dmplanner_ptr_->computePath(start, goal, path_jps); // Compute the path given the jps path
   auto path_dmp = dmplanner_ptr_->getPath();
   nav_msgs::Path nav_path_dmp;
-  create_path(path_dmp, nav_path_dmp, w_T_p, current_time);
+  create_path2d(path_dmp, nav_path_dmp, w_T_p, current_time, ps_goal.pose.position.z);
   paths.push_back(nav_path_dmp);
 
   if (!paths.empty())
