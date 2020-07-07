@@ -12,7 +12,7 @@ use_current_start: false
 use_down_cam: false
 use_goto: true
 disable_obstacle_avoid: false
-disable_jps: false
+disable_jps: true
 jps_always: false
 inflate_ring_buffer: true
 lookahead_time: 5.5
