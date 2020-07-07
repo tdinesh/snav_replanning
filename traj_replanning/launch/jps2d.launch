@@ -12,7 +12,7 @@
       <param name="world_frame" value="$(arg world_frame)"/>
       <param name="base_frame" value="$(arg base_frame)"/>
 
-      <remap from="projected_map" to="/projected_map"/>
+      <remap from="projected_map" to="projected_map"/>
       <remap from="odom" to="ground_truth/odom"/>
       <remap from="waypoints" to="/waypoints"/>
     </node>
