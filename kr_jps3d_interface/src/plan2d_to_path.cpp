@@ -269,7 +269,7 @@ void Plan2DToPath::create_path2d(vec_Vec2f planner_path, nav_msgs::Path& path, c
 
     path_ps_planner.pose.position.x = it.transpose()[0];
     path_ps_planner.pose.position.y = it.transpose()[1];
-    path_ps_planner.pose.position.z = path_z;
+    path_ps_planner.pose.position.z = 0.0;
 
     tf2::doTransform(path_ps_planner, path_ps_world, w_T_p); //Transform to world frame
 
@@ -286,10 +286,11 @@ void Plan2DToPath::create_path2d(vec_Vec2f planner_path, nav_msgs::Path& path, c
       {
         interm_pt.pose.position.x = diff_x*i/num_steps + last_pt.pose.position.x;
         interm_pt.pose.position.y = diff_y*i/num_steps + last_pt.pose.position.y;
-        interm_pt.pose.position.z = 0.0;
+        interm_pt.pose.position.z = path_z;
         path.poses.push_back(interm_pt);
       }
     }
+    path_ps_world.pose.position.z = path_z;
     path.poses.push_back(path_ps_world);
   }
 }
