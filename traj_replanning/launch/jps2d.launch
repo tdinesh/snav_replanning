@@ -1,0 +1,21 @@
+<launch>
+  <arg name="mav_name" default="ddk"/>
+
+  <arg name="planning_frame" default="voxel_map"/>
+  <arg name="world_frame" default="world"/>
+  <arg name="base_frame" default="$(arg mav_name)/base_link"/>
+
+  <group ns="$(arg mav_name)">
+
+    <node name="plan2d_to_path" pkg="kr_jps3d_interface" type="plan2d_to_path" output="screen">
+      <param name="planning_frame" value="$(arg planning_frame)"/>
+      <param name="world_frame" value="$(arg world_frame)"/>
+      <param name="base_frame" value="$(arg base_frame)"/>
+
+      <remap from="projected_map" to="/projected_map"/>
+      <remap from="odom" to="ground_truth/odom"/>
+      <remap from="waypoints" to="/waypoints"/>
+    </node>
+
+  </group>
+</launch>

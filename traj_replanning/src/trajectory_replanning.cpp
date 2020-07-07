@@ -210,8 +210,8 @@ KrTraj::KrTraj():
   bool use_points = true;
   pnh_.param("use_points", use_points, true);
 
-  pnh_.param<std::string>("map_frame", map_frame_, "/world");
-  pnh_.param<std::string>("odom_frame", odom_frame_, "/odom");
+  pnh_.param<std::string>("map_frame", map_frame_, "world");
+  pnh_.param<std::string>("odom_frame", odom_frame_, "odom");
 
   pnh_.param("use_current_start", use_current_start_, true);
   pnh_.param("use_goto", use_goto_, true);

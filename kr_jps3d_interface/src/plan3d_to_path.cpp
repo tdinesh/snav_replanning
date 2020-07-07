@@ -398,7 +398,10 @@ void Plan3DToPath::waypointsCallback(const nav_msgs::Path::ConstPtr& msg)
   boost::mutex::scoped_lock lock(map_mutex_);
   {
     if (!map_initialized_)
+    {
       ROS_ERROR("No map initialized");
+      return;
+    }
 
     //#TODO does the planner needs to be reset everytime?
     setUpJPS();

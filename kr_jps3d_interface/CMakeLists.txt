@@ -208,3 +208,6 @@ add_executable(plan3d_to_path src/plan3d_to_path.cpp)
 add_dependencies(plan3d_to_path ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(plan3d_to_path ${catkin_LIBRARIES} ${YAMLCPP_LIBRARIES} ${JPS3D_LIBRARIES})
 
+add_executable(plan2d_to_path src/plan2d_to_path.cpp)
+add_dependencies(plan2d_to_path ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(plan2d_to_path ${catkin_LIBRARIES} ${JPS3D_LIBRARIES})
