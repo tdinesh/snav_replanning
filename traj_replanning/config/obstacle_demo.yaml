@@ -12,8 +12,8 @@ use_current_start: false
 use_down_cam: false
 use_goto: true
 disable_obstacle_avoid: false
-disable_jps: true
-jps_always: false
+disable_jps: false
+jps_always: true
 inflate_ring_buffer: true
 lookahead_time: 5.5
 lookahead_grid_size_width: 3.5

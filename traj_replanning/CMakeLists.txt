@@ -22,7 +22,6 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   roscpp
   std_msgs
-  mav_msgs
   tf
   tf_conversions
   actionlib
@@ -89,7 +88,7 @@ find_package(SuiteSparse REQUIRED)
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgsmav_msgs
+#   std_msgs
 # )
 
 ################################################
@@ -124,7 +123,7 @@ find_package(SuiteSparse REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES traj_replanning
-#  CATKIN_DEPENDS angles cv_bridge eigen_conversions ewok_optimization ewok_poly_spline ewok_ring_buffer mav_manager pcl_conversions pcl_ros roscpp std_msgsmav_msgs tf tf_conversions
+#  CATKIN_DEPENDS angles cv_bridge eigen_conversions ewok_optimization ewok_poly_spline ewok_ring_buffer mav_manager pcl_conversions pcl_ros roscpp std_msgs tf tf_conversions
 #  DEPENDS system_lib
 )
 
