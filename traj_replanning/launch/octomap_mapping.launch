@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="points_topic" default="rgbd/depth/points"/>
-  <arg name="map_frame_id" default="odom"/>
+  <arg name="map_frame_id" default="ddk/odom"/>
 
   <arg name="mav_name" default="ddk"/>
 
