@@ -5,9 +5,12 @@
 
   <arg name="yaml_file" default="obstacle_demo" unless="$(arg disable_obstacle_avoid)" />
   <arg name="yaml_file" default="pcv_demo" if="$(arg disable_obstacle_avoid)" />
+
   <arg name="planning_frame" default="voxel_map"/>
   <arg name="world_frame" default="world"/>
   <arg name="base_frame" default="$(arg mav_name)/base_link"/>
+
+  <arg name="odom_topic" default="ground_truth/odom"/>
 
   <group ns="$(arg mav_name)">
     <node pkg="kr_jps3d_interface" type="ring_buffer_to_voxel_map" name="ring_buffer_to_voxel_map" output="screen">
@@ -26,18 +29,18 @@
       <remap from="ring_buffer/occupied" to="ring_buffer/occupied"/>
     </node>
 
-
     <node name="plan3d_to_path" pkg="kr_jps3d_interface" type="plan3d_to_path" output="screen">
 
       <param name="yaml_map" value="false"/>
       <param name="yaml_file" value="$(find jps3d)/data/simple3d.yaml"/>
+
       <param name="planning_frame" value="$(arg planning_frame)"/>
       <param name="world_frame" value="$(arg world_frame)"/>
       <param name="base_frame" value="$(arg base_frame)"/>
 
+      <remap from="odom" to="$(arg odom_topic)"/>
       <remap from="rb_to_voxel_map" to="rb_to_voxel_map"/>
-      <remap from="odom" to="ground_truth/odom"/>
-      <remap from="waypoints" to="/waypoints"/>
+      <remap from="waypoints" to="waypoints"/>
 
     </node>
 

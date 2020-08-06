@@ -1,35 +1,46 @@
 <launch>
-  <arg name="mav_name" default="$(env MAV_NAME)"/>
+  <arg name="mav_name" default="$(optenv MAV_NAME)"/>
 
   <arg name="disable_obstacle_avoid" default="false" />
 
   <arg name="yaml_file" default="obstacle_demo" unless="$(arg disable_obstacle_avoid)" />
   <arg name="yaml_file" default="pcv_demo" if="$(arg disable_obstacle_avoid)" />
-  <arg name="world_frame" default="/world"/>
+
+  <arg name="planning_frame" default="voxel_map"/>
+  <arg name="world_frame" default="world"/>
+  <arg name="base_frame" default="base_link"/>
+
+  <arg name="odom_topic" default="quadrotor_ukf/control_odom_throttled"/>
 
   <group ns="$(arg mav_name)">
     <node pkg="kr_jps3d_interface" type="ring_buffer_to_voxel_map" name="ring_buffer_to_voxel_map" output="screen">
       <rosparam command="load" file="$(find traj_replanning)/config/$(arg yaml_file).yaml" />
-      <param name="voxel_map_size" value="8"/>
+      <param name="voxel_map_size" value="6"/>
       <param name="resolution" value="0.1"/>
-      <remap from="ring_buffer/occupied" to="ring_buffer/occupied"/>
-      <param name="planning_frame" value="voxel_map"/>
-      <param name="world_frame" value="$(arg world_frame)"/>
       <param name="inflate_map" value="false"/>
+      <param name="planning_frame" value="$(arg planning_frame)"/>
+      <param name="world_frame" value="$(arg world_frame)"/>
+      <param name="base_frame" value="$(arg base_frame)"/>
+
+      <param name="floor_ceiling" value="true"/>
+      <param name="floor_height" value="0.0"/>
+      <param name="ceiling_height" value="2.5"/>
+
+      <remap from="ring_buffer/occupied" to="ring_buffer/occupied"/>
     </node>
 
     <node name="plan3d_to_path" pkg="kr_jps3d_interface" type="plan3d_to_path" output="screen">
 
       <param name="yaml_map" value="false"/>
       <param name="yaml_file" value="$(find jps3d)/data/simple3d.yaml"/>
+
+      <param name="planning_frame" value="$(arg planning_frame)"/>
       <param name="world_frame" value="$(arg world_frame)"/>
+      <param name="base_frame" value="$(arg base_frame)"/>
 
+      <remap from="odom" to="$(arg odom_topic)"/>
       <remap from="rb_to_voxel_map" to="rb_to_voxel_map"/>
-      <remap from="odom" to="quadrotor_ukf/control_odom_throttled"/>
       <remap from="waypoints" to="jps3d/waypoints"/>
-
-      <!-- Remap/send dmp path to ewok waypoints
-      <remap from="dmp_path" to="waypoints"/> -->
     </node>
 
   </group>

@@ -1,11 +1,11 @@
 <launch>
-  <arg name="mav_name" default="ddk"/>
+  <arg name="mav_name" default="$(optenv MAV_NAME)"/>
 
   <arg name="planning_frame" default="voxel_map"/>
   <arg name="world_frame" default="world"/>
-  <arg name="base_frame" default="$(arg mav_name)/base_link"/>
+  <arg name="base_frame" default="base_link"/>
 
-  <arg name="odom_topic" default="ground_truth/odom"/>
+  <arg name="odom_topic" default="quadrotor_ukf/control_odom_throttled"/>
 
   <group ns="$(arg mav_name)">
 
@@ -16,7 +16,7 @@
 
       <remap from="odom" to="$(arg odom_topic)"/>
       <remap from="projected_map" to="inflated_map"/>
-      <remap from="waypoints" to="waypoints"/>
+      <remap from="waypoints" to="jps2d/waypoints"/>
     </node>
 
   </group>

@@ -2,5 +2,4 @@
   <arg name="mav_name" default="dragonfly12"/>
   <arg name="rviz_config" default="$(find system_launch)/config/rviz/$(arg mav_name).rviz"/>
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_config)"/>
-  <include file="$(find dragonfly_description)/launch/test_urdf.launch"/>
 </launch>

@@ -1,44 +1,19 @@
 <launch>
-  <arg name="mav_name" default="$(env MAV_NAME)"/>
-  <arg name="use_dfs" default="false"/>
-  <arg name="points_topic" default="stereo/points" />
+  <arg name="mav_name" default="$(optenv MAV_NAME)"/>
   <arg name="nodelet_manager_name" default="stereo_nodelet_manager"/>
+  <arg name="points_topic" default="radius_outlier_removal/output"/>
 
   <group ns="$(arg mav_name)">
 
-    <group unless="$(arg use_dfs)">
-      <include file="$(find system_launch)/launch/pcl_radius_outlier.launch">
-        <arg name="radius_search" value="0.1" />
-        <arg name="min_neighbors" value="38"/>
-        <!--<arg name="min_neighbors" value="50"/> -->
-        <arg name="points_topic" default="$(arg points_topic)" />
-      </include>
-    </group>
-
-    <group if="$(arg use_dfs)">
-      <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
-
-      <node pkg="nodelet" type="nodelet" name="passthrough" args="load pcl/PassThrough pcl_manager" output="screen">
-        <remap from="~input" to="$(arg points_topic)" />
-        <rosparam>
-          filter_field_name: z
-          filter_limit_min: 0.5
-          filter_limit_max: 4.0
-          filter_limit_negative: False
-        </rosparam>
-      </node>
-    </group>
-
     <node name="trajectory_replanning" pkg="traj_replanning" type="trajectory_replanning" output="screen">
       <rosparam command="load" file="$(find system_launch)/config/traj_replanning.yaml" />
-      <param name="map_frame" value="/world"/>
-      <param name="odom_frame" value="/base_link"/>
+      <param name="map_frame" value="world"/>
+      <param name="odom_frame" value="base_link"/>
 
-      <remap from="camera/depth/image_raw" to="stereo/dfs/depth/image_raw"/>
-      <remap from="radius_outlier_removal/output" to="passthrough/output" if="$(arg use_dfs)"/>
+      <remap from="input_point_cloud" to="radius_outlier_removal/output"/>
       <remap from="down_cam_points" to="vioqc_map_pc_pub/current_map_points"/>
       <remap from="waypoints" to="waypoints"/>
-      <remap from="mav_manager_node/goTo" to="mav_services/goTo"/>
+      <remap from="mav_services/goTo" to="mav_services/goTo"/>
     </node>
   </group>
 </launch>

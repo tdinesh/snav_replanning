@@ -238,7 +238,7 @@ KrTraj::KrTraj():
   pnh_.param("lookahead_gain_traj_dist", lookahead_gain_traj_dist_, 1.0);
   pnh_.param("lookahead_gain_obstacle_dist", lookahead_gain_obstacle_dist_, 2.0);
   pnh_.param("lookahead_gain_ray", lookahead_gain_ray_, 1.0);
-
+ROS_ERROR("a");
   min_yaw_ang_diff_ = min_yaw_ang_diff_*3.142/180.0;
 
   listener_.reset(new tf::TransformListener());
@@ -255,17 +255,17 @@ KrTraj::KrTraj():
 
   current_traj_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("optimal_trajectory", 1, true);
 
-  service_client_ = nh_.serviceClient<kr_mav_manager::Vec4>("mav_manager_node/goTo");
+  service_client_ = nh_.serviceClient<kr_mav_manager::Vec4>("mav_services/goTo");
 
   jps_service_client_ = nh_.serviceClient<nav_msgs::GetPlan>("jps_plan_service");
-
+ROS_ERROR("b");
   if(use_points){
-    points_sub_.subscribe(nh_, "radius_outlier_removal/output", 3);
+    points_sub_.subscribe(nh_, "input_point_cloud", 3);
     tf_filter_fc_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(points_sub_, *listener_, map_frame_, 3));
     tf_filter_fc_->registerCallback(boost::bind(&KrTraj::pointsCallback, this, _1));
   }
   else{
-    depth_image_sub_.subscribe(nh_, "camera/depth/image_raw", 3);
+    depth_image_sub_.subscribe(nh_, "depth_image", 3);
     tf_filter_im_.reset(new tf::MessageFilter<sensor_msgs::Image>(depth_image_sub_, *listener_, map_frame_, 3));
     tf_filter_im_->registerCallback(boost::bind(&KrTraj::depthImageCallback, this, _1));
   }
@@ -276,7 +276,7 @@ KrTraj::KrTraj():
     tf_filter_dp_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(down_points_sub_, *listener_down_, map_frame_, 3));
     tf_filter_dp_->registerCallback(boost::bind(&KrTraj::downPointsCallback, this, _1));
   }
-
+ROS_ERROR("d");
   path_sub_  = nh_.subscribe<nav_msgs::Path>("waypoints", 5,  boost::bind(&KrTraj::pathCallback, this, _1));
 
   // Set up the action server.
@@ -291,7 +291,7 @@ KrTraj::KrTraj():
   if (!traj_tracker_client_.waitForServer(ros::Duration(3.0))) {
     ROS_ERROR("TrajectoryTracker server not found.");
   }
-
+ROS_ERROR("e");
   configure_service_ = nh_.advertiseService("configure_service", &KrTraj::configureParams, this);
 }
 
@@ -570,7 +570,7 @@ void KrTraj::edrbMoveVolume(Eigen::Vector3f& origin)
 }
 
 void KrTraj::pointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
-{
+{ ROS_ERROR("c--");
   if(disable_obstacle_avoid_)
     return;
 
