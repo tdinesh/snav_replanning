@@ -7,8 +7,8 @@
 
     <node name="trajectory_replanning" pkg="traj_replanning" type="trajectory_replanning" output="screen">
       <rosparam command="load" file="$(find system_launch)/config/traj_replanning.yaml" />
-      <param name="map_frame" value="world"/>
-      <param name="odom_frame" value="base_link"/>
+      <param name="map_frame" value="odom"/>
+      <param name="base_frame" value="base_link"/>
 
       <remap from="input_point_cloud" to="radius_outlier_removal/output"/>
       <remap from="down_cam_points" to="vioqc_map_pc_pub/current_map_points"/>

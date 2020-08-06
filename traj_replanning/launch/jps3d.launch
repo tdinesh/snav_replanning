@@ -40,7 +40,7 @@
 
       <remap from="odom" to="$(arg odom_topic)"/>
       <remap from="rb_to_voxel_map" to="rb_to_voxel_map"/>
-      <remap from="waypoints" to="waypoints"/>
+      <remap from="waypoints" to="jps3d/waypoints"/>
 
     </node>
 

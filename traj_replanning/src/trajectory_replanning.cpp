@@ -91,9 +91,9 @@ private:
   void preempt_callback();
   void processPath(const nav_msgs::Path::ConstPtr& msg);
   void setTrackingPath(const Eigen::Vector4d& limits, const geometry_msgs::Point& start, ewok::PolynomialTrajectory3D<10>::Ptr& traj);
-  bool getLookAheadCosts(const geometry_msgs::Point& lookahead, const Eigen::Affine3f& o_w_transform,
+  bool getLookAheadCosts(const geometry_msgs::Point& lookahead, const Eigen::Affine3f& bl_w_transform,
     const Eigen::Vector3d& normal_to_traj, geometry_msgs::PoseStamped& min_cost_pt);
-  bool getJpsTraj(const double& traj_time, const Eigen::Affine3f& o_w_transform, geometry_msgs::PoseStamped& min_cost_pt);
+  bool getJpsTraj(const double& traj_time, const Eigen::Affine3f& bl_w_transform, geometry_msgs::PoseStamped& min_cost_pt);
   void updateTrackingPath(const Eigen::Vector4d& limits, const geometry_msgs::Point& start, ewok::PolynomialTrajectory3D<10>::Ptr& traj);
   bool configureParams(kr_replanning_msgs::ConfigureReplanning::Request& req, kr_replanning_msgs::ConfigureReplanning::Response& res);
   void edrbMoveVolume(Eigen::Vector3f& origin);
@@ -165,7 +165,7 @@ private:
 
   Eigen::Vector3d last_cmd_;
 
-  std::string map_frame_, odom_frame_;
+  std::string map_frame_, odom_frame_, base_frame_;
   bool use_current_start_, use_goto_;
 
   typedef actionlib::SimpleActionServer<kr_replanning_msgs::TrackPathAction> ServerType;
@@ -211,7 +211,7 @@ KrTraj::KrTraj():
   pnh_.param("use_points", use_points, true);
 
   pnh_.param<std::string>("map_frame", map_frame_, "world");
-  pnh_.param<std::string>("odom_frame", odom_frame_, "odom");
+  pnh_.param<std::string>("base_frame", base_frame_, "base_link");
 
   pnh_.param("use_current_start", use_current_start_, true);
   pnh_.param("use_goto", use_goto_, true);
@@ -238,7 +238,7 @@ KrTraj::KrTraj():
   pnh_.param("lookahead_gain_traj_dist", lookahead_gain_traj_dist_, 1.0);
   pnh_.param("lookahead_gain_obstacle_dist", lookahead_gain_obstacle_dist_, 2.0);
   pnh_.param("lookahead_gain_ray", lookahead_gain_ray_, 1.0);
-ROS_ERROR("a");
+
   min_yaw_ang_diff_ = min_yaw_ang_diff_*3.142/180.0;
 
   listener_.reset(new tf::TransformListener());
@@ -258,7 +258,7 @@ ROS_ERROR("a");
   service_client_ = nh_.serviceClient<kr_mav_manager::Vec4>("mav_services/goTo");
 
   jps_service_client_ = nh_.serviceClient<nav_msgs::GetPlan>("jps_plan_service");
-ROS_ERROR("b");
+
   if(use_points){
     points_sub_.subscribe(nh_, "input_point_cloud", 3);
     tf_filter_fc_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(points_sub_, *listener_, map_frame_, 3));
@@ -276,7 +276,7 @@ ROS_ERROR("b");
     tf_filter_dp_.reset(new tf::MessageFilter<sensor_msgs::PointCloud2>(down_points_sub_, *listener_down_, map_frame_, 3));
     tf_filter_dp_->registerCallback(boost::bind(&KrTraj::downPointsCallback, this, _1));
   }
-ROS_ERROR("d");
+
   path_sub_  = nh_.subscribe<nav_msgs::Path>("waypoints", 5,  boost::bind(&KrTraj::pathCallback, this, _1));
 
   // Set up the action server.
@@ -291,8 +291,10 @@ ROS_ERROR("d");
   if (!traj_tracker_client_.waitForServer(ros::Duration(3.0))) {
     ROS_ERROR("TrajectoryTracker server not found.");
   }
-ROS_ERROR("e");
+
   configure_service_ = nh_.advertiseService("configure_service", &KrTraj::configureParams, this);
+
+  ROS_WARN("Traj replanning initialized");
 }
 
 KrTraj::~KrTraj()
@@ -570,7 +572,7 @@ void KrTraj::edrbMoveVolume(Eigen::Vector3f& origin)
 }
 
 void KrTraj::pointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
-{ ROS_ERROR("c--");
+{
   if(disable_obstacle_avoid_)
     return;
 
@@ -693,7 +695,7 @@ void KrTraj::tracker_done_callback(const actionlib::SimpleClientGoalState& state
   ROS_INFO("Goal finished tot_time %2.2f tot_dist %2.2f", result->total_time, result->total_distance_travelled);
 }
 
-bool KrTraj::getLookAheadCosts(const geometry_msgs::Point& lookahead_wf, const Eigen::Affine3f& o_w_transform,
+bool KrTraj::getLookAheadCosts(const geometry_msgs::Point& lookahead_wf, const Eigen::Affine3f& bl_w_transform,
   const Eigen::Vector3d& normal_to_traj, geometry_msgs::PoseStamped& min_cost_pt)
 {
   bool found_min_cost = false;
@@ -717,9 +719,9 @@ bool KrTraj::getLookAheadCosts(const geometry_msgs::Point& lookahead_wf, const E
   color.a = 1;
 
   Eigen::Vector3f current_position;
-  current_position[0] = o_w_transform.translation()[0];
-  current_position[1] = o_w_transform.translation()[1];
-  current_position[2] = o_w_transform.translation()[2];
+  current_position[0] = bl_w_transform.translation()[0];
+  current_position[1] = bl_w_transform.translation()[1];
+  current_position[2] = bl_w_transform.translation()[2];
 
   Eigen::Vector3f n_to_traj = normal_to_traj.cast<float>();
   Eigen::Vector3f grad;
@@ -828,13 +830,13 @@ bool KrTraj::getLookAheadCosts(const geometry_msgs::Point& lookahead_wf, const E
   return found_min_cost;
 }
 
-bool KrTraj::getJpsTraj(const double& traj_time, const Eigen::Affine3f& o_w_transform, geometry_msgs::PoseStamped& min_cost_pt)
+bool KrTraj::getJpsTraj(const double& traj_time, const Eigen::Affine3f& bl_w_transform, geometry_msgs::PoseStamped& min_cost_pt)
 {
   nav_msgs::GetPlan jps_srv;
   jps_srv.request.start = min_cost_pt;
-  jps_srv.request.start.pose.position.x = o_w_transform.translation()[0];
-  jps_srv.request.start.pose.position.y = o_w_transform.translation()[1];
-  jps_srv.request.start.pose.position.z = o_w_transform.translation()[2];
+  jps_srv.request.start.pose.position.x = bl_w_transform.translation()[0];
+  jps_srv.request.start.pose.position.y = bl_w_transform.translation()[1];
+  jps_srv.request.start.pose.position.z = bl_w_transform.translation()[2];
   jps_srv.request.goal = min_cost_pt;
   if (jps_service_client_.call(jps_srv))
   {
@@ -864,7 +866,7 @@ bool KrTraj::getJpsTraj(const double& traj_time, const Eigen::Affine3f& o_w_tran
     visualization_msgs::MarkerArray local_traj;
     local_traj.markers.resize(orig_global_traj_->numSegments()+1);
     visualization_msgs::Marker &traj_marker = local_traj.markers[0];
-    traj_marker.header.frame_id = "world";
+    traj_marker.header.frame_id = map_frame_;
     traj_marker.ns = "gt";
     traj_marker.id = 0;
     traj_marker.type = visualization_msgs::Marker::POINTS;
@@ -961,7 +963,7 @@ void KrTraj::sendCommand()
     tf::StampedTransform transform;
     try
     {
-      listener_->lookupTransform(map_frame_, odom_frame_, ros::Time(0), transform);
+      listener_->lookupTransform(map_frame_, base_frame_, ros::Time(0), transform);
     }
     catch (tf::TransformException &ex)
     {
@@ -1047,7 +1049,7 @@ void KrTraj::sendCommand()
   tf::StampedTransform transform;
   try
   {
-    listener_->lookupTransform(map_frame_, odom_frame_, ros::Time(0), transform);
+    listener_->lookupTransform(map_frame_, base_frame_, ros::Time(0), transform);
   }
   catch (tf::TransformException &ex)
   {
@@ -1058,7 +1060,7 @@ void KrTraj::sendCommand()
 
   Eigen::Affine3d dT_o_w;
   tf::transformTFToEigen(transform, dT_o_w);
-  Eigen::Affine3f Tf_odom_to_world = dT_o_w.cast<float>();
+  Eigen::Affine3f Tf_bl_to_world = dT_o_w.cast<float>();
 
   //Get current robot yaw
   tf::Quaternion robot_q = transform.getRotation();
@@ -1104,7 +1106,7 @@ void KrTraj::sendCommand()
     lookahead.y = lookah[1];
     lookahead.z = lookah[2];
     geometry_msgs::PoseStamped min_cost_pt;
-    bool found_min_cost = getLookAheadCosts(lookahead, Tf_odom_to_world, normal_to_traj, min_cost_pt);
+    bool found_min_cost = getLookAheadCosts(lookahead, Tf_bl_to_world, normal_to_traj, min_cost_pt);
 
     if(!found_min_cost)
     {
@@ -1140,7 +1142,7 @@ void KrTraj::sendCommand()
     if(jps_always_)
     {
       if(traj_reset_time_ > 4.0)
-        bool ret = getJpsTraj(local_time_, Tf_odom_to_world, min_cost_pt);
+        bool ret = getJpsTraj(local_time_, Tf_bl_to_world, min_cost_pt);
     }
     else
     {
@@ -1149,7 +1151,7 @@ void KrTraj::sendCommand()
         (trigger_jps || (std::fabs(shortest_ang_robot) > angles::from_degrees(50)) || (minf > 200))))
       {
         ROS_WARN("Calling JPS3D");
-        bool ret = getJpsTraj(local_time_, Tf_odom_to_world, min_cost_pt);
+        bool ret = getJpsTraj(local_time_, Tf_bl_to_world, min_cost_pt);
         return; //TODO check this
       }
     }
@@ -1329,7 +1331,7 @@ void KrTraj::processPath(const nav_msgs::Path::ConstPtr& msg)
     tf::StampedTransform transform;
     try
     {
-      listener_->lookupTransform(map_frame_, odom_frame_, ros::Time(0), transform);
+      listener_->lookupTransform(map_frame_, base_frame_, ros::Time(0), transform);
     }
     catch (tf::TransformException &ex)
     {
