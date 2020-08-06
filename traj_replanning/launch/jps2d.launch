@@ -2,7 +2,7 @@
   <arg name="mav_name" default="ddk"/>
 
   <arg name="planning_frame" default="voxel_map"/>
-  <arg name="world_frame" default="world"/>
+  <arg name="world_frame" default="$(arg mav_name)/odom"/>
   <arg name="base_frame" default="$(arg mav_name)/base_link"/>
 
   <arg name="odom_topic" default="ground_truth/odom"/>
