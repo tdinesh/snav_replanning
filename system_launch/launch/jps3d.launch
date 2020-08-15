@@ -7,7 +7,7 @@
   <arg name="yaml_file" default="pcv_demo" if="$(arg disable_obstacle_avoid)" />
 
   <arg name="planning_frame" default="voxel_map"/>
-  <arg name="world_frame" default="world"/>
+  <arg name="world_frame" default="odom"/>
   <arg name="base_frame" default="base_link"/>
 
   <arg name="odom_topic" default="quadrotor_ukf/control_odom_throttled"/>

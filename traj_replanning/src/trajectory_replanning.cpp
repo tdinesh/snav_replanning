@@ -426,6 +426,10 @@ void KrTraj::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg)
   edrb_->getMarkerOccupied(m_occ);
   edrb_->getMarkerFree(m_free);
 
+  m_occ.header.stamp = msg->header.stamp;
+  m_free.header.stamp = msg->header.stamp;
+  m_occ.header.frame_id = map_frame_;
+  m_free.header.frame_id = map_frame_;
   occ_marker_pub_.publish(m_occ);
   free_marker_pub_.publish(m_free);
 }
@@ -539,6 +543,10 @@ void KrTraj::downPointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
   edrb_->getMarkerOccupied(m_occ);
   edrb_->getMarkerFree(m_free);
 
+  m_occ.header.stamp = msg->header.stamp;
+  m_free.header.stamp = msg->header.stamp;
+  m_occ.header.frame_id = map_frame_;
+  m_free.header.frame_id = map_frame_;
   occ_marker_pub_.publish(m_occ);
   free_marker_pub_.publish(m_free);
 }
@@ -687,6 +695,8 @@ void KrTraj::pointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 
   m_occ.header.stamp = msg->header.stamp;
   m_free.header.stamp = msg->header.stamp;
+  m_occ.header.frame_id = map_frame_;
+  m_free.header.frame_id = map_frame_;
   occ_marker_pub_.publish(m_occ);
   free_marker_pub_.publish(m_free);
 }
@@ -1005,10 +1015,11 @@ void KrTraj::sendCommand()
 
   double orig_cumulative_traj_time = orig_global_traj_->duration();
 
-  ROS_WARN("local_tim %g traj_reset_time %g traj_time %g tot_tim %g max_tim %g min_tim %g", local_time_, traj_reset_time_, traj_time, cumulative_traj_time, max_tim, min_tim);
+  ROS_INFO("local_tim %g traj_reset_time %g traj_time %g min_tim %g ", local_time_, traj_reset_time_, traj_time, min_tim);
+  ROS_WARN("cumulative_traj_time %g max_time %g", cumulative_traj_time, max_tim);
   ROS_INFO("Orig %g", orig_cumulative_traj_time);
 
-  if(max_tim > cumulative_traj_time)
+  if(max_tim > cumulative_traj_time && (local_time_ > cumulative_traj_time - 1.5))
   {
     ROS_WARN("Reached goal");
     path_tracking_ = false;
@@ -1020,6 +1031,7 @@ void KrTraj::sendCommand()
       result.result = true;
       tracker_server_->setSucceeded(result);
     }
+    return;
   }
 
   geometry_msgs::PoseArray optimized_points;
@@ -1141,13 +1153,13 @@ void KrTraj::sendCommand()
 
     if(jps_always_)
     {
-      if(traj_reset_time_ > 4.0)
+      if(traj_reset_time_ > 5.0)
         bool ret = getJpsTraj(local_time_, Tf_bl_to_world, min_cost_pt);
     }
     else
     {
       //if((traj_reset_time_ > 4.0) && ((std::fabs(shortest_ang_robot) > angles::from_degrees(50)) || (minf > 200)))
-      if(force_jps || ((traj_reset_time_ > 4.0)  &&
+      if(force_jps || ((traj_reset_time_ > 5.0)  &&
         (trigger_jps || (std::fabs(shortest_ang_robot) > angles::from_degrees(50)) || (minf > 200))))
       {
         ROS_WARN("Calling JPS3D");
@@ -1232,6 +1244,10 @@ void KrTraj::sendCommand()
 
   visualization_msgs::MarkerArray traj_marker;
   spline_optimization_->getMarkers(traj_marker);
+
+  for(int i = 0; i < traj_marker.markers.size(); i++)
+    traj_marker.markers[i].header.frame_id = map_frame_;
+
   current_traj_pub_.publish(traj_marker);
 
   //~ visualization_msgs::Marker m_dist;
@@ -1270,6 +1286,7 @@ void KrTraj::track_path_callback()
     return;
   }
 
+  ROS_WARN("KrTraj TrackPathAction goal received");
   //const nav_msgs::Path pth = msg->path;
   nav_msgs::Path::ConstPtr ptr(new nav_msgs::Path(msg->path));
   processPath(ptr);
@@ -1402,6 +1419,9 @@ void KrTraj::processPath(const nav_msgs::Path::ConstPtr& msg)
 
   visualization_msgs::MarkerArray traj_marker;
   global_traj_->getVisualizationMarkerArray(traj_marker, "gt", Eigen::Vector3d(1,0,1));
+  for(int i = 0; i < traj_marker.markers.size(); i++)
+    traj_marker.markers[i].header.frame_id = map_frame_;
+
   global_traj_marker_pub_.publish(traj_marker);
 
   //Get initial traj yaw
@@ -1460,6 +1480,8 @@ void KrTraj::updateTrackingPath(const Eigen::Vector4d& limits, const geometry_ms
 
   visualization_msgs::MarkerArray traj_marker;
   traj->getVisualizationMarkerArray(traj_marker, "gt", Eigen::Vector3d(1,0,1));
+  for(int i = 0; i < traj_marker.markers.size(); i++)
+    traj_marker.markers[i].header.frame_id = map_frame_;
   global_traj_marker_pub_.publish(traj_marker);
 
   //Get initial traj yaw

@@ -2,7 +2,7 @@
   <arg name="mav_name" default="$(optenv MAV_NAME)"/>
 
   <arg name="planning_frame" default="voxel_map"/>
-  <arg name="world_frame" default="world"/>
+  <arg name="world_frame" default="odom"/>
   <arg name="base_frame" default="base_link"/>
 
   <arg name="odom_topic" default="quadrotor_ukf/control_odom_throttled"/>
