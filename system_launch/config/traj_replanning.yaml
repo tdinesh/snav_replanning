@@ -4,8 +4,8 @@ max_velocity: 0.5
 max_acceleration: 0.3
 resolution: 0.05
 size: 3.0
-distance_threshold: 0.25
-inflation_size: 0.8
+distance_threshold: 0.15
+inflation_size: 0.5
 min_yaw_ang_diff: 20.0
 use_points: true
 use_current_start: false
@@ -14,7 +14,7 @@ use_goto: true
 disable_obstacle_avoid: false
 disable_jps: false
 jps_always: true
-inflate_ring_buffer: false
+inflate_ring_buffer: true
 lookahead_time: 5.5
 lookahead_grid_size_width: 3.5
 lookahead_grid_size_height: 2.0

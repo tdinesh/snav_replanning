@@ -927,7 +927,7 @@ bool KrTraj::getJpsTraj(const double& traj_time, const Eigen::Affine3f& bl_w_tra
 
     //global_traj_marker_pub_.publish(local_traj);
 
-    Eigen::Vector4d limits(max_velocity_, 0, 0, 0);
+    Eigen::Vector4d limits(max_velocity_, max_acceleration_, 0, 0);
     ewok::Polynomial3DOptimization<10> to(limits*0.6);
     ewok::Polynomial3DOptimization<10>::Vector3Array path;
     for (int i=1; i<local_traj.markers.size();i++)
@@ -1019,7 +1019,7 @@ void KrTraj::sendCommand()
   ROS_WARN("cumulative_traj_time %g max_time %g", cumulative_traj_time, max_tim);
   ROS_INFO("Orig %g", orig_cumulative_traj_time);
 
-  if(max_tim > cumulative_traj_time && (local_time_ > cumulative_traj_time - 1.5))
+  if(max_tim > cumulative_traj_time && (local_time_ > cumulative_traj_time - 1.0))
   {
     ROS_WARN("Reached goal");
     path_tracking_ = false;
