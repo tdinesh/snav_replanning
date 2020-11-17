@@ -32,7 +32,7 @@
     <node name="plan3d_to_path" pkg="kr_jps3d_interface" type="plan3d_to_path" output="screen">
 
       <param name="yaml_map" value="false"/>
-      <param name="yaml_file" value="$(find jps3d)/data/simple3d.yaml"/>
+      <!--<param name="yaml_file" value="$(find jps3d)/data/simple3d.yaml"/> -->
 
       <param name="planning_frame" value="$(arg planning_frame)"/>
       <param name="world_frame" value="$(arg world_frame)"/>

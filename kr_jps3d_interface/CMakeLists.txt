@@ -158,12 +158,6 @@ add_definitions(${PCL_DEFINITIONS})
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-## Mark executables and/or libraries for installation
-# install(TARGETS kr_jps3d_interface kr_jps3d_interface_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -211,3 +205,10 @@ target_link_libraries(plan3d_to_path ${catkin_LIBRARIES} ${YAMLCPP_LIBRARIES} ${
 add_executable(plan2d_to_path src/plan2d_to_path.cpp)
 add_dependencies(plan2d_to_path ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(plan2d_to_path ${catkin_LIBRARIES} ${JPS3D_LIBRARIES})
+
+## Mark executables and/or libraries for installation
+install(TARGETS octomap_create_jps_map pcl_filtering ring_buffer_to_voxel_map octomap_to_voxel_map plan3d_to_path plan2d_to_path
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
