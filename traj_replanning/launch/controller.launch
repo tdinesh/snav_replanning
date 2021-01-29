@@ -24,8 +24,8 @@
       name="trackers_manager"
       args="load kr_trackers_manager/TrackersManager $(arg nodelet_manager_name)"
       output="screen">
-      <rosparam file="$(find kr_mav_launch)/config/trackers.yaml"/>
-      <rosparam file="$(find ddk_sim_launch)/config/tracker_params.yaml"/>
+      <rosparam file="$(find mpl_tracker)/config/trackers.yaml"/>
+      <rosparam file="$(find mpl_tracker)/config/tracker_params.yaml"/>
       <remap from="~odom" to="$(arg odom_topic)"/>
       <remap from="~cmd" to="position_cmd"/>
     </node>

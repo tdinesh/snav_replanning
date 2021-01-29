@@ -41,7 +41,7 @@ tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 4; roslaunch kr_mav_la
 tmux select-layout -t $SESSION_NAME tiled
 
 tmux new-window -t $SESSION_NAME -n "Main"
-tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 3; export DISPLAY=${CURRENT_DISPLAY}; roslaunch mrsl_quadrotor_launch gazebo.launch world:=empty" Enter
+tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 3; export DISPLAY=${CURRENT_DISPLAY}; roslaunch mrsl_quadrotor_launch gazebo.launch world:=office gui:=false" Enter
 tmux split-window -t $SESSION_NAME
 tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 4; export DISPLAY=${CURRENT_DISPLAY}; roslaunch mrsl_quadrotor_launch spawn.launch mav_type:=${MAV_TYPE} mav_name:=${MAV_NAME}" Enter
 tmux split-window -t $SESSION_NAME
@@ -56,11 +56,11 @@ tmux split-window -t $SESSION_NAME
 tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 4; roslaunch traj_replanning ddk_sim_tf_pub.launch" Enter
 tmux select-layout -t $SESSION_NAME even-horizontal
 
-tmux new-window -t $SESSION_NAME -n "Plan"
-tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 5; roslaunch traj_replanning snav_obstacle_demo.launch mav_name:=ddk"
-tmux split-window -t $SESSION_NAME
-tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 5; roslaunch traj_replanning jps3d.launch"
-tmux select-layout -t $SESSION_NAME tiled
+# tmux new-window -t $SESSION_NAME -n "Plan"
+# tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 5; roslaunch traj_replanning snav_obstacle_demo.launch mav_name:=ddk"
+# tmux split-window -t $SESSION_NAME
+# tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 5; roslaunch traj_replanning jps3d.launch" Enter
+# tmux select-layout -t $SESSION_NAME tiled
 
 # Add window to easily kill all processes
 tmux new-window -t $SESSION_NAME -n "Kill"
