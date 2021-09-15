@@ -922,7 +922,7 @@ bool KrTraj::getJpsTraj(const double& traj_time, const Eigen::Affine3f& bl_w_tra
     }
 
     float dt = 0.3;
-    ROS_WARN("Get removed seg traj %d %d", local_traj.markers.size(), orig_global_traj_->numSegments());
+    ROS_WARN("Get removed seg traj %lu %d", local_traj.markers.size(), orig_global_traj_->numSegments());
     orig_global_traj_->getRemovedSegmentTraj(local_traj, traj_lt, traj_seg_num, lookah_join_lt, lookah_join_seg_num, "gt", Eigen::Vector3d(1,0,1), dt);
 
     //global_traj_marker_pub_.publish(local_traj);
@@ -1227,7 +1227,7 @@ void KrTraj::sendCommand()
 
     //goal.waypoint_times.push_back(waypoint_times);
 
-    ROS_WARN("goal sizes %d %d", goal.waypoints.size(), goal.waypoint_times.size());
+    ROS_WARN("goal sizes %lu %lu", goal.waypoints.size(), goal.waypoint_times.size());
 
     traj_tracker_client_.sendGoal(goal, boost::bind(&KrTraj::tracker_done_callback, this, _1, _2), TrajectoryClientType::SimpleActiveCallback(), TrajectoryClientType::SimpleFeedbackCallback());
 
@@ -1445,7 +1445,7 @@ void KrTraj::processPath(const nav_msgs::Path::ConstPtr& msg)
   start.z = odom_tf.getOrigin().getZ();
   */
 
-  ROS_INFO("Received new waypoints, num segments %d", traj_marker.markers.size());
+  ROS_INFO("Received new waypoints, num segments %lu", traj_marker.markers.size());
 
   setTrackingPath(limits, start, global_traj_);
 }

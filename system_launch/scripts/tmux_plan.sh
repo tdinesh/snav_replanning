@@ -24,7 +24,7 @@ tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; sleep 5; roslaunch system_la
 tmux select-layout -t $SESSION_NAME even-horizontal
 
 tmux new-window -t $SESSION_NAME -n "In"
-tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; rosservice call ${MAV_NAME}/StartExploration"
+tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; rosservice call /${MAV_NAME}/StartExploration"
 tmux split-window -t $SESSION_NAME
 tmux send-keys -t $SESSION_NAME "$SETUP_ROS_STRING; roscd snavquad_interface/scripts/capture/; ./record.sh ${MAV_ID}"
 
@@ -41,7 +41,7 @@ tmux select-layout -t $SESSION_NAME tiled
 tmux new-window -t $SESSION_NAME -n "Kill"
 tmux send-keys -t $SESSION_NAME "tmux kill-session -t tmux_plan"
 
-tmux select-window -t $SESSION_NAME:0
+tmux select-window -t $SESSION_NAME:2
 tmux -2 attach-session -t $SESSION_NAME
 
 clear

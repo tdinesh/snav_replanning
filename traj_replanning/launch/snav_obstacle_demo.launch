@@ -25,7 +25,7 @@
       <param name="base_frame" value="$(arg mav_name)/base_link"/>
 
       <remap from="depth_image" to="stereo/dfs/depth/image_raw"/>
-      <remap from="waypoints" to="waypoints"/>
+      <remap from="waypoints" to="replan/waypoints"/>
       <remap from="mav_services/goTo" to="mav_services/goTo"/>
       <remap from="input_point_cloud" to="passthrough/output"/>
     </node>
