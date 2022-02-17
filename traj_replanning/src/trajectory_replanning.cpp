@@ -630,6 +630,12 @@ void KrTraj::pointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
 
     if(inflate_)
     {
+      int inflate_cell_count = inflation_size_ / resolution_;
+
+      //infl_rad[0] = inflate_cell_count;
+      //infl_rad[1] = inflate_cell_count;
+      //infl_rad[2] = inflate_cell_count;
+
       for (int l=-infl_rad[0]; l<=infl_rad[0];l++)
       {
         for (int m=-infl_rad[1]; m<=infl_rad[1];m++)
@@ -643,6 +649,20 @@ void KrTraj::pointsCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
           }
         }
       }
+
+      /*
+      float min_x = pt.x - inflate_size;
+      float min_y = pt.y - inflate_size;
+      for(int j=0; j<inflation_step ; j++)
+      {
+        for(int k=0; k<inflation_step; k++)
+        {
+          p[0] = min_x + j*resolution_;
+          p[1] = min_y + k*resolution_;
+          cloud1.push_back(p);
+        }
+      }*/
+
     }
 
     cloud1.push_back(p);
@@ -1019,7 +1039,7 @@ void KrTraj::sendCommand()
   ROS_WARN("cumulative_traj_time %g max_time %g", cumulative_traj_time, max_tim);
   ROS_INFO("Orig %g", orig_cumulative_traj_time);
 
-  if(max_tim > cumulative_traj_time && (local_time_ > cumulative_traj_time - 1.0))
+  if(max_tim > (cumulative_traj_time - 2.0) && (local_time_ > cumulative_traj_time - 2.0))
   {
     ROS_WARN("Reached goal");
     path_tracking_ = false;

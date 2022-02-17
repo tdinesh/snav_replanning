@@ -171,7 +171,7 @@ include_directories(
 ## Mark cpp header files for installation
 install(DIRECTORY launch/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 install(DIRECTORY config/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
-install(DIRECTORY scripts/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts)
+install(DIRECTORY scripts/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/scripts USE_SOURCE_PERMISSIONS)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

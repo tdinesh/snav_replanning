@@ -1,16 +1,21 @@
 <launch>
   <arg name="mav_name" default="$(optenv MAV_NAME)"/>
   <arg name="nodelet_manager_name" default="stereo_nodelet_manager"/>
-  <arg name="points_topic" default="radius_outlier_removal/output"/>
+  <arg name="cam_name" default="tof"/>
+  <!--<arg name="points_topic" default="$(arg cam_name)/radius_outlier_removal/output"/>-->
+  <arg name="points_topic" default="$(arg cam_name)/radius_outlier_removal/output"/>
+
+  <arg name="map_frame" default="$(arg mav_name)/odom"/>
+  <arg name="base_frame" default="$(arg mav_name)/base_link"/>
 
   <group ns="$(arg mav_name)">
 
     <node name="trajectory_replanning" pkg="traj_replanning" type="trajectory_replanning" output="screen">
       <rosparam command="load" file="$(find system_launch)/config/traj_replanning.yaml" />
-      <param name="map_frame" value="odom"/>
-      <param name="base_frame" value="base_link"/>
+      <param name="map_frame" value="$(arg map_frame)"/>
+      <param name="base_frame" value="$(arg base_frame)"/>
 
-      <remap from="input_point_cloud" to="radius_outlier_removal/output"/>
+      <remap from="input_point_cloud" to="$(arg points_topic)"/>
       <remap from="down_cam_points" to="vioqc_map_pc_pub/current_map_points"/>
       <remap from="waypoints" to="waypoints"/>
       <remap from="mav_services/goTo" to="mav_services/goTo"/>
