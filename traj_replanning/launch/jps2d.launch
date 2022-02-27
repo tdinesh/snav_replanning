@@ -6,6 +6,7 @@
   <arg name="base_frame" default="$(arg mav_name)/base_link"/>
 
   <arg name="odom_topic" default="ground_truth/odom"/>
+  <arg name="map_topic" default="inflated_map"/>
 
   <group ns="$(arg mav_name)">
 
@@ -15,7 +16,7 @@
       <param name="base_frame" value="$(arg base_frame)"/>
 
       <remap from="odom" to="$(arg odom_topic)"/>
-      <remap from="projected_map" to="inflated_map"/>
+      <remap from="projected_map" to="$(arg map_topic)"/>
       <remap from="waypoints" to="jps2d/waypoints"/>
     </node>
 

@@ -16,6 +16,8 @@ ln -sf /opt/ptmx /dev/ptmx
 
 SETUP_ROS_STRING="source ~/home_linaro/.bashrc_voxl"
 
+source ~/home_linaro/.bashrc_voxl
+
 #Check if MAV_ID is set
 if echo $MAV_ID | grep -Eq '^[+-]?[0-9]+$'
 then
