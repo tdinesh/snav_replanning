@@ -1,9 +1,9 @@
 <launch>
 
   <arg name="points_topic" default="rgbd/depth/points"/>
-  <arg name="map_frame_id" default="ddk/odom"/>
 
   <arg name="mav_name" default="ddk"/>
+  <arg name="map_frame_id" default="$(arg mav_name)/odom"/>
 
   <node pkg="octomap_server" type="octomap_server_node" name="octomap_server" ns="$(arg mav_name)">
     <param name="resolution" value="0.05" />
